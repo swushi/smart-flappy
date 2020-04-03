@@ -1,106 +1,71 @@
+const TOTAL = 50;
 let pipes = [];
-let bird;
-
+let birds = [];
+let savedBirds = [];
+let score = 0;
+let maxScore = 0;
+let isOver = false;
+let counter = 0;
 
 function setup() {
   createCanvas(400, 400);
-  background(0);
-  pipes.push(new Pipe());
-  bird = new Bird();
+
+  for (let i = 0; i < TOTAL; i++) {
+    birds.push(new Bird())
+  }
 }
 
 function draw() {
   background(51);
-
-  bird.show();
-  bird.update();
-
-  if (frameCount % 70 == 0) {
+  
+  if ((counter) % 70 == 0) {
     pipes.push(new Pipe());
   }
 
-  for (let i = 0; i < pipes.length; i++) {
+  // Show all the pipes
+  for (let i = pipes.length - 1; i >= 0; i--) {
     pipes[i].update();
-    pipes[i].show();
-    
-    pipes[i].hit(bird);
-    
     if (pipes[i].offScreen()) {
-      pipes.splice(1, i);
-      
+      pipes.splice(i, 1);
     }
-  }
-}
-
-function keyPressed() {
-  if (key == ' ') {
-    bird.up();
-  }
-}
-
-class Bird {
-  constructor() {
-    this.x = 50;
-    this.y = width / 2;
-    this.gravity = 0.6;
-    this.dy = 0;
-    this.lift = -7;
-    this.size = 30;
-  }
-
-  show() {
-    circle(this.x, this.y, this.size);
-  }
-
-  update() {
-    this.dy += this.gravity;
-    this.y += this.dy;
-
-    if (this.y >= height - this.size / 2) {
-      this.y = height - this.size / 2;
-      this.dy = 0;
-    }
-
-    if (this.y <= 0 + this.size / 2) {
-      this.y = 0 + this.size / 2;
-      this.dy = 0;
-    }
-  }
-
-  up() {
-    this.dy = this.lift;
-  }
-}
-
-class Pipe {
-  constructor() {
-    this.spacing = height * 0.2;
-    this.top = random(height * 0.3, height * 0.7);
-    this.bottom = this.top + this.spacing;
-    this.width = 25;
-    this.x = width;
-    this.speed = -3;
-  }
-
-  show() {
-    fill(255);
-    rect(this.x, 0, this.width, this.top);
-    rect(this.x, this.bottom, this.width, height - this.bottom);
-  }
-
-  update() {
-    this.x += this.speed;
-  }
-
-  offScreen() {
-    return this.x < 0 - this.width * 2;
   }
   
-  hit(bird) {
-    if (bird.x >= this.x + this.width && bird.x <= this.x) {
-      if (bird.y < this.top + bird.size / 2) {
-        noLoop();
+  for (let i = 0; i < birds.length; i++) {
+    let bird = birds[i];
+    
+    bird.update();
+    time = millis();
+    bird.think(pipes);
+    console.log(millis()-time);
+    
+    for (let j = 0; j < pipes.length; j++) {
+      if (pipes[j].hit(bird)) {
+        savedBirds.push(birds.splice(i,1)[0]);
       }
     }
   }
+
+
+
+  for (let i = 0; i < birds.length; i++) {
+    birds[i].show();
+  }
+
+  for (let i = 0; i < pipes.length; i++) {
+    pipes[i].show();
+  }
+
+  if (birds.length === 0) {
+    newGeneration();
+    pipes = [];
+    pipes.push(new Pipe())
+    counter = 0;
+  }
+  counter++;
+}
+
+function showScores() {
+  textSize(32);
+  text("score: " + score, 1, 32);
+  text("record: " + maxScore, 1, 64);
 }
